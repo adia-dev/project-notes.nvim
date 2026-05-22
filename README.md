@@ -13,14 +13,46 @@ Small project-scoped notes and todos for Neovim. Notes are stored as Markdown fi
 
 ## Installation
 
-With lazy.nvim:
+With lazy.nvim and plugin-managed mappings:
 
 ```lua
 {
   "adia-dev/project-notes.nvim",
-  config = function()
-    require("project-notes").setup()
-  end,
+  opts = {},
+}
+```
+
+For command/key lazy-loading, let lazy.nvim own the keymaps and disable the plugin's built-in mappings:
+
+```lua
+{
+  "adia-dev/project-notes.nvim",
+  cmd = {
+    "ProjectNotes",
+    "ProjectNotesClose",
+    "ProjectNote",
+    "ProjectTodo",
+    "ProjectNotesRefresh",
+    "ProjectNotesFind",
+  },
+  keys = {
+    { "<leader>no", function() require("project-notes").open() end, desc = "Open project notes" },
+    { "<leader>nc", function() require("project-notes").close() end, desc = "Close project notes" },
+    { "<leader>nn", function() require("project-notes").note() end, desc = "Capture project note" },
+    { "<leader>nn", function() require("project-notes").selection_note() end, mode = "x", desc = "Capture selection note" },
+    { "<leader>nt", function() require("project-notes").todo() end, desc = "Capture project todo" },
+    { "<leader>nt", function() require("project-notes").selection_todo() end, mode = "x", desc = "Capture selection todo" },
+    { "<leader>nf", function() require("project-notes").find_project_notes() end, desc = "Find project notes" },
+    { "<leader>nl", function() require("project-notes").list_buffer() end, desc = "List buffer notes" },
+    { "<leader>np", function() require("project-notes").preview_line() end, desc = "Preview line notes" },
+    { "<leader>nr", function() require("project-notes").refresh_all() end, desc = "Refresh note signs" },
+    { "<leader>nP", function() require("project-notes").copy_path() end, desc = "Copy project notes path" },
+    { "]n", function() require("project-notes").next_note() end, desc = "Next project note" },
+    { "[n", function() require("project-notes").prev_note() end, desc = "Previous project note" },
+  },
+  opts = {
+    mappings = false,
+  },
 }
 ```
 
@@ -30,9 +62,8 @@ With a local checkout:
 {
   dir = "~/.local/share/nvim/project-notes.nvim",
   name = "project-notes.nvim",
-  config = function()
-    require("project-notes").setup()
-  end,
+  main = "project-notes",
+  opts = {},
 }
 ```
 
@@ -45,6 +76,50 @@ git clone https://github.com/adia-dev/project-notes.nvim.git ~/.local/share/nvim
 ```
 
 Then point your plugin manager at that local directory with `dir = "~/.local/share/nvim/project-notes.nvim"`.
+
+## Configuration
+
+`setup()` accepts a table and can be called directly by packer or through lazy.nvim `opts`.
+
+```lua
+require("project-notes").setup({
+  notes_dir = vim.fn.stdpath("data") .. "/project-notes",
+  root_markers = { ".git" },
+  commands = true,
+  autocmds = true,
+  mappings = {
+    enabled = true,
+    open = "<leader>no",
+    close = "<leader>nc",
+    note = "<leader>nn",
+    todo = "<leader>nt",
+    find = "<leader>nf",
+    list_buffer = "<leader>nl",
+    preview_line = "<leader>np",
+    refresh = "<leader>nr",
+    copy_path = "<leader>nP",
+    next_note = "]n",
+    prev_note = "[n",
+  },
+  signs = {
+    enabled = true,
+    priority = 20,
+    note = { text = "N", hl = "ProjectNotesSign" },
+    todo = { text = "T", hl = "ProjectNotesTodoSign" },
+  },
+  preview = {
+    border = "rounded",
+    jump_delay = 20,
+  },
+  telescope = {
+    enabled = true,
+    prompt_title = "Project Notes",
+    preview_title = "Project Note Preview",
+  },
+})
+```
+
+Use `mappings = false`, `commands = false`, `autocmds = false`, or `signs = false` to disable those integrations.
 
 ## Usage
 

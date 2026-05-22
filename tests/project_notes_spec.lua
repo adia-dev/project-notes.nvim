@@ -63,6 +63,33 @@ end
 
 function M.run()
 	local notes = require("project-notes")
+
+	local custom_notes_dir = vim.fn.tempname()
+	notes.setup({
+		notes_dir = custom_notes_dir,
+		commands = false,
+		mappings = false,
+		signs = {
+			enabled = false,
+		},
+	})
+	local normalized_custom_notes_dir = require("project-notes.config").get().notes_dir
+
+	assert_eq(vim.fn.exists(":ProjectNotes"), 0, "commands can be disabled")
+	assert_eq(vim.fn.maparg("<leader>nf", "n"), "", "mappings can be disabled")
+
+	with_project("custom-dir", function(_, src)
+		vim.cmd.edit(vim.fn.fnameescape(src))
+		notes.open()
+		local real_custom_notes_dir = vim.uv.fs_realpath(normalized_custom_notes_dir) or normalized_custom_notes_dir
+		assert_eq(
+			vim.api.nvim_buf_get_name(0):sub(1, #real_custom_notes_dir),
+			real_custom_notes_dir,
+			"custom notes directory"
+		)
+	end)
+	vim.fn.delete(custom_notes_dir, "rf")
+
 	notes.setup()
 
 	assert_eq(vim.fn.exists(":ProjectNotesFind"), 2, "ProjectNotesFind command")
